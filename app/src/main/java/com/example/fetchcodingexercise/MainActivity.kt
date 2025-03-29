@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
                         numMismatch += 1
                     }
                 }
-                if (numMismatch == 1) {
+                if (numMismatch == 0) {
                     Log.d("DEBUG", "Verified all items follow the naming convention")
                 } else {
                     val percentMismatch = getPercent(numMismatch, numItems2)
