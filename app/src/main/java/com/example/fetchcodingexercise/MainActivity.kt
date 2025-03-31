@@ -1,10 +1,10 @@
 package com.example.fetchcodingexercise
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,18 +28,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fetchcodingexercise.ui.theme.FetchCodingExerciseTheme
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.util.Locale
-
-// activity = screen
-// fragment = activity module
 
 // This is the first screen the user sees after the app launches.
 class MainActivity : ComponentActivity() {
+    private val viewModel: ItemsViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // initialize UI
         enableEdgeToEdge()
         setContent {
             FetchCodingExerciseTheme {
@@ -48,61 +43,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        fetchData()
-    }
+        // fetch data
+        viewModel.fetchItems()
+        // observe state changes
 
-    private fun getPercent(numerator: Int, denominator: Int): String {
-        val percent = numerator.toDouble() / denominator * 100
-        val percentStr = String.format(Locale.getDefault(), "%.0f", percent)
-        return "($percentStr%)"
-    }
-
-    private fun fetchData() {
-        RetrofitClient.api.getItems().enqueue(object : Callback<List<Item>> {
-            override fun onResponse(call: Call<List<Item>>, response: Response<List<Item>>) {
-                if (!response.isSuccessful) {
-                    Log.e("DEBUG", "Error: ${response.code()}")
-                    return
-                }
-                // get the raw data, an unsorted list of all entries
-                val allItems = (response.body() ?: emptyList())
-                // filter items with no name, keeping track of how many items were removed
-                val numItems1 = allItems.count()
-                Log.d("DEBUG", "Received $numItems1 items")
-                val filteredItems = allItems.filter { !it.name.isNullOrEmpty() }
-                val numItems2 = filteredItems.count()
-                val numRemoved = numItems1 - numItems2
-                val percentRemoved = getPercent(numRemoved, numItems1)
-                Log.d("DEBUG", "Filtered out $numRemoved unnamed items $percentRemoved")
-                // reformat
-                val itemLists = filteredItems
-                    .groupBy { it.listId }
-                    .mapValues { (_, items) -> items.sortedBy { it.name } }
-                    .toSortedMap()
-                // TODO: set UI
-
-                // verify all items have matching names and IDs
-                // TODO: do this on a different thread
-                var numMismatch = 0
-                for (item in filteredItems) {
-                    val actualName = item.name
-                    val expectedName = "Item ${item.id}"
-                    if (expectedName != actualName) {
-                        numMismatch += 1
-                    }
-                }
-                if (numMismatch == 0) {
-                    Log.d("DEBUG", "Verified all items follow the naming convention")
-                } else {
-                    val percentMismatch = getPercent(numMismatch, numItems2)
-                    Log.e("DEBUG", "$numMismatch items don't follow the naming convention $percentMismatch")
-                }
-            }
-
-            override fun onFailure(call: Call<List<Item>>, t: Throwable) {
-                Log.e("FetchData", "Failed: ${t.message}")
-            }
-        })
     }
 }
 
