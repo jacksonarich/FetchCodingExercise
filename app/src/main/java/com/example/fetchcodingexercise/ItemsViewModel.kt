@@ -18,25 +18,25 @@ class ItemsViewModel : ViewModel() {
     private val _currentListId = MutableStateFlow<Int?>(null)
     val currentListId = _currentListId.asStateFlow()
 
-    private val _searchQuery = MutableStateFlow<String>("")
+    private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
     // retrieves dataset from the web and fills state
     fun fetchItems() {
         // launch coroutine
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d("DEBUG", "Sent HTML request")
+            Log.d("fetchItems", "Sent HTML request")
             // get the raw data, an unsorted list of all entries
             val allItems = RetrofitClient.api.getItems()
 //            val allItems = debugDataset
             // filter out unnamed items
             val numItems1 = allItems.count()
-            Log.d("DEBUG", "Received $numItems1 items")
+            Log.d("fetchItems", "Received $numItems1 items")
             val filteredItems = allItems.filter { !it.name.isNullOrEmpty() }
             val numItems2 = filteredItems.count()
             val numRemoved = numItems1 - numItems2
-            val percentRemoved = getPercent(numRemoved, numItems1)
-            Log.d("DEBUG", "Filtered out $numRemoved unnamed items $percentRemoved")
+            val percentRemoved = formatPercent(numRemoved, numItems1)
+            Log.d("fetchItems", "Filtered out $numRemoved unnamed items $percentRemoved")
             // organize into sorted lists
             val itemLists = filteredItems
                 .groupBy { it.listId }
@@ -56,10 +56,10 @@ class ItemsViewModel : ViewModel() {
             }
             // print result of verification
             if (numMismatch == 0) {
-                Log.d("DEBUG", "Verified naming convention")
+                Log.d("fetchItems", "Verified naming convention")
             } else {
-                val percentMismatch = getPercent(numMismatch, numItems2)
-                Log.e("DEBUG", "$numMismatch items break the naming convention $percentMismatch")
+                val percentMismatch = formatPercent(numMismatch, numItems2)
+                Log.e("fetchItems", "$numMismatch items break the naming convention $percentMismatch")
             }
             // calculate histogram values
             val numCats = 10 // customizable
@@ -72,12 +72,12 @@ class ItemsViewModel : ViewModel() {
                 }
             }
             // print histogram values
-            Log.d("DEBUG", "Histogram values: $catCounts")
+            Log.d("fetchItems", "Histogram values: $catCounts")
         }
     }
 
     // calculates percentage and formats it for logging
-    private fun getPercent(numerator: Int, denominator: Int): String {
+    private fun formatPercent(numerator: Int, denominator: Int): String {
         val percent = numerator.toDouble() / denominator * 100
         val percentStr = String.format(Locale.getDefault(), "%.0f", percent)
         return "($percentStr%)"
