@@ -28,7 +28,6 @@ class ItemsViewModel : ViewModel() {
             Log.d("fetchItems", "Sent HTML request")
             // get the raw data, an unsorted list of all entries
             val allItems = RetrofitClient.api.getItems()
-//            val allItems = debugDataset
             // filter out unnamed items
             val numItems1 = allItems.count()
             Log.d("fetchItems", "Received $numItems1 items")
@@ -92,57 +91,4 @@ class ItemsViewModel : ViewModel() {
     fun setSearchQuery(query2: String) {
         _searchQuery.value = query2.lowercase()
     }
-
-    private val debugDataset = mutableListOf(
-        Item(755, 2, "Item 755"),
-        Item(203, 2, "Item 203"),
-        Item(684, 1, "Item 684"),
-        Item(276, 1, "Item 276"),
-        Item(736, 3, "Item 736"),
-        Item(926, 4, "Item 926"),
-        Item(808, 4, "Item 808"),
-        Item(599, 1, "Item 599"),
-        Item(424, 2, "Item 424"),
-        Item(444, 1, "Item 444"),
-        Item(809, 3, "Item 809"),
-        Item(293, 2, "Item 293"),
-        Item(510, 2, "Item 510"),
-        Item(680, 3, "Item 680"),
-        Item(231, 2, "Item 231"),
-        Item(534, 4, "Item 534"),
-        Item(294, 4, "Item 294"),
-        Item(439, 1, "Item 439"),
-        Item(156, 2, "Item 156"),
-        Item(906, 2, "Item 906"),
-        Item(49, 2, "Item 49"),
-        Item(48, 2, "Item 48"),
-        Item(735, 1, "Item 735"),
-        Item(52, 2, "Item 52"),
-        Item(681, 4, "Item 681"),
-        Item(137, 3, "Item 137"),
-        Item(989, 1, "Item 989"),
-        Item(94, 1, "Item 94"),
-        Item(177, 1, "Item 177"),
-        Item(263, 1, "Item 263"),
-        Item(196, 1, "Item 196"),
-        Item(669, 2, "Item 669"),
-        Item(710, 3, "Item 710"),
-        Item(145, 1, "Item 145"),
-        Item(92, 4, "Item 92"),
-        Item(68, 3, "Item 68"),
-        Item(364, 2, "Item 364"),
-        Item(174, 2, "Item 174"),
-        Item(406, 3, "Item 406"),
-        Item(394, 2, "Item 394"),
-        Item(624, 1, "Item 624"),
-        Item(969, 4, "Item 969"),
-        Item(947, 2, "Item 947"),
-        Item(743, 1, "Item 743"),
-        Item(419, 1, "Item 419"),
-        Item(834, 4, "Item 834"),
-        Item(91, 3, "Item 91"),
-        Item(163, 2, "Item 163"),
-        Item(471, 3, "Item 471"),
-        Item(442, 1, "Item 442"),
-    )
 }
