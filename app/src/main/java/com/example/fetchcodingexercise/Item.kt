@@ -6,4 +6,7 @@ data class Item(
     val id: Int,
     val listId: Int,
     val name: String?
-)
+) {
+    val unwrappedName: String
+        get() = name ?: "Unnamed"
+}

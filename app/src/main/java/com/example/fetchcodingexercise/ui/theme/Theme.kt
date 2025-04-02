@@ -10,7 +10,6 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import com.example.fetchcodingexercise.R
 
 @Composable
 fun FetchCodingExerciseTheme(
@@ -26,27 +25,27 @@ fun FetchCodingExerciseTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
         darkTheme -> darkColorScheme(
-            primary = Color.DarkGray,
-            secondary = Color.Blue,
-            tertiary = Color.Blue,
+            primary = Color.White,
+            secondary = Color.Red,
+            tertiary = Color.Red,
             background = Color.Black,
             surface = PurpleAccent,
-            onPrimary = Color.Blue,
-            onSecondary = Color.Blue,
-            onTertiary = Color.Blue,
-            onBackground = Color.Blue,
+            onPrimary = Color.Red,
+            onSecondary = Color.Red,
+            onTertiary = Color.Red,
+            onBackground = Color.Red,
             onSurface = Color.White,
         )
         else -> lightColorScheme(
-            primary = Color.LightGray,
-            secondary = Color.Blue,
-            tertiary = Color.Blue,
+            primary = Color.Black,
+            secondary = Color.Red,
+            tertiary = Color.Red,
             background = Color.White,
             surface = PurpleAccent,
-            onPrimary = Color.Blue,
-            onSecondary = Color.Blue,
-            onTertiary = Color.Blue,
-            onBackground = Color.Blue,
+            onPrimary = Color.Red,
+            onSecondary = Color.Red,
+            onTertiary = Color.Red,
+            onBackground = Color.Red,
             onSurface = Color.Black,
         )
     }

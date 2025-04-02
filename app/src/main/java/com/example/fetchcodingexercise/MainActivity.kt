@@ -26,9 +26,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,14 +38,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.fetchcodingexercise.ui.theme.FetchCodingExerciseTheme
 
 // This is the first screen the user sees after the app launches.
 class MainActivity : ComponentActivity() {
-    private val viewModel: ItemsViewModel by viewModels()
+    private val vm: ItemsViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // initialize UI
@@ -52,40 +57,43 @@ class MainActivity : ComponentActivity() {
             FetchCodingExerciseTheme(dynamicColor = false) {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        TopBar(viewModel = viewModel)
-                    }
+                    topBar = { TopBar(vm = vm) }
                 ) { innerPadding ->
                     ItemList(
                         modifier = Modifier.padding(innerPadding),
-                        viewModel = viewModel)
+                        vm = vm)
                 }
             }
         }
-        // fetch data
-        viewModel.fetchItems()
+        // send HTML request
+        vm.fetchItems()
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(
-    viewModel: ItemsViewModel = ItemsViewModel()
-) {
-    val items by viewModel.items.collectAsState()
-    val listId by viewModel.currentListId.collectAsState()
+fun TopBar(vm: ItemsViewModel = ItemsViewModel()) {
+    val items by vm.items.collectAsState()
+    val listId by vm.currentListId.collectAsState()
     var showDropDownMenu by remember { mutableStateOf(false) }
+    var showSearchField by remember { mutableStateOf(false) }
     TopAppBar(
         title = {
             if (items != null && listId != null) {
-                Text("List $listId")
+                if (showSearchField) {
+                    SearchBar(vm = vm)
+                } else {
+                    Text("List $listId")
+                }
             }
         },
         actions = {
             if (items != null && listId != null) {
                 // list selection
                 IconButton(onClick = { showDropDownMenu = true }) {
-                    Icon(Icons.AutoMirrored.Default.List, contentDescription = "Show more options")
+                    Icon(
+                        Icons.AutoMirrored.Default.List,
+                        contentDescription = "Select list")
                 }
                 DropdownMenu(
                     expanded = showDropDownMenu,
@@ -97,7 +105,7 @@ fun TopBar(
                         DropdownMenuItem(
                             text = { Text(text = "List $id") },
                             onClick = {
-                                viewModel.selectList(id)
+                                vm.setListId(id)
                                 showDropDownMenu = false
                             },
                             modifier = Modifier.background(if (id == listId) gray else clear)
@@ -105,25 +113,59 @@ fun TopBar(
                     }
                 }
                 // search
-                Icon(Icons.Default.Search, "Search")
+                IconButton(onClick = {
+                    showSearchField = !showSearchField
+                    if (!showSearchField) { vm.setSearchQuery("") }
+                }) {
+                    val theme = MaterialTheme.colorScheme
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = "Search",
+                        tint = if (showSearchField) theme.background else theme.primary)
+                }
             }
         })
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchBar(vm: ItemsViewModel = ItemsViewModel()) {
+    val listId by vm.currentListId.collectAsState()
+    val searchQuery by vm.searchQuery.collectAsState()
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    SearchBarDefaults.InputField(
+        query = searchQuery,
+        onQueryChange = { vm.setSearchQuery(it) },
+        onSearch = { focusManager.clearFocus() },
+        expanded = true,
+        onExpandedChange = {},
+        placeholder = { Text("Search list $listId") },
+        modifier = Modifier.focusRequester(focusRequester)
+    )
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 }
 
 @Composable
 fun ItemList(
     modifier: Modifier = Modifier,
-    viewModel: ItemsViewModel = ItemsViewModel()
+    vm: ItemsViewModel = ItemsViewModel()
 ) {
-    val items by viewModel.items.collectAsState()
-    val listId by viewModel.currentListId.collectAsState()
+    val items by vm.items.collectAsState()
+    val listId by vm.currentListId.collectAsState()
+    val searchQuery by vm.searchQuery.collectAsState()
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         if (items != null && listId != null) {
             // item list
-            val itemList = items!![listId!!]!!
+            var itemList = items!![listId!!]!!
+            if (searchQuery.isNotBlank()) {
+                itemList = itemList.filter {
+                    it.unwrappedName.lowercase().contains(searchQuery)
+                }
+            }
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(itemList) { item ->
                     ItemRow(item)
@@ -147,9 +189,8 @@ fun ItemRow(item: Item) {
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Text(
-            text = item.name ?: "Unnamed",
-            modifier = Modifier.padding(16.dp)
-        )
+            text = item.unwrappedName,
+            modifier = Modifier.padding(16.dp))
     }
 }
 
