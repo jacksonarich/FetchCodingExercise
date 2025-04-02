@@ -15,6 +15,9 @@ class ItemsViewModel : ViewModel() {
     private val _items = MutableStateFlow<SortedMap<Int, List<Item>>?>(null)
     val items = _items.asStateFlow()
 
+    private val _currentListId = MutableStateFlow<Int?>(null)
+    val currentListId = _currentListId.asStateFlow()
+
     fun fetchItems() {
         // launch coroutine
         viewModelScope.launch(Dispatchers.IO) {
@@ -35,6 +38,7 @@ class ItemsViewModel : ViewModel() {
                 .toSortedMap()
             // set state
             _items.value = itemLists
+            _currentListId.value = itemLists.firstKey()
             // verify all items have matching names and IDs
             var numMismatch = 0
             for (item in filteredItems) {
@@ -52,17 +56,17 @@ class ItemsViewModel : ViewModel() {
                 Log.e("DEBUG", "$numMismatch items break the naming convention $percentMismatch")
             }
             // calculate histogram values
-            val numClasses = 10 // customizable
-            val classSize = 1000.toDouble() / numClasses
-            val classNums = MutableList(numClasses) { 0 }
+            val numCats = 10 // customizable
+            val catSize = 1000.toDouble() / numCats
+            val catCounts = MutableList(numCats) { 0 }
             for ((_, itemList) in itemLists) {
                 for (item in itemList) {
-                    val itemClass = floor(item.id.toDouble() / classSize).toInt()
-                    classNums[itemClass] += 1
+                    val itemCat = floor(item.id.toDouble() / catSize).toInt()
+                    catCounts[itemCat] += 1
                 }
             }
             // print histogram values
-            Log.d("DEBUG", "Histogram values: $classNums")
+            Log.d("DEBUG", "Histogram values: $catCounts")
         }
     }
 
@@ -71,5 +75,9 @@ class ItemsViewModel : ViewModel() {
         val percent = numerator.toDouble() / denominator * 100
         val percentStr = String.format(Locale.getDefault(), "%.0f", percent)
         return "($percentStr%)"
+    }
+
+    fun selectList(id: Int) {
+        _currentListId.value = id
     }
 }

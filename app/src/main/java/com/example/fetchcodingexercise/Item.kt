@@ -1,6 +1,6 @@
 package com.example.fetchcodingexercise
 
-// This is my model for the dataset provided.
+// This is my model for each row in the dataset.
 // Each row corresponds to an instance of this class.
 data class Item(
     val id: Int,
